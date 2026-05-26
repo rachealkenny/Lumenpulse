@@ -19,6 +19,7 @@ import { computeFundingProgress, formatTokenAmount } from '../../../lib/stellar'
 import ContributionModal from '../../../components/ContributionModal';
 import VerificationPanel from '../../../components/VerificationPanel';
 import { usersApi } from '../../../lib/api';
+import { storage } from '../../../lib/storage';
 import { moderationApi, ReportType, ReportReason } from '../../../lib/moderation';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -202,10 +203,16 @@ export default function ProjectDetailScreen() {
   }, [projectId]);
 
   const fetchUserPublicKey = useCallback(async () => {
+    const cachedPublicKey = await storage.getActiveWalletPublicKey();
+    if (cachedPublicKey) {
+      setStellarPublicKey(cachedPublicKey);
+    }
+
     try {
       const response = await usersApi.getProfile();
       if (response.success && response.data?.stellarPublicKey) {
         setStellarPublicKey(response.data.stellarPublicKey);
+        await storage.setActiveWalletPublicKey(response.data.stellarPublicKey);
       }
     } catch {
       // Non-critical — the user may not have a linked account yet
