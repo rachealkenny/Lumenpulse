@@ -47,6 +47,7 @@ import { OutboxModule } from './outbox/outbox.module';
 import { VerificationModule } from './verification/verification.module';
 import { TelegramBotModule } from './telegram-bot/telegram-bot.module';
 import { IdempotencyInterceptor } from './common/interceptors/idempotency.interceptor';
+import { DeprecationInterceptor } from './common/interceptors/deprecation.interceptor';
 import { SearchModule } from './search/search.module';
 import { ExportModule } from './export/export.module';
 import { AppConfigModule } from './config/config.module';
@@ -139,6 +140,7 @@ import { AuditLogInterceptor } from './audit/interceptors/audit-log.interceptor'
     {
       provide: APP_INTERCEPTOR,
       useClass: AuditLogInterceptor,
+      useClass: DeprecationInterceptor,
     },
   ],
 })
