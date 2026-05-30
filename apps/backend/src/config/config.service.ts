@@ -1,5 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import stellarConfig from '../stellar/config/stellar.config';
 import { config } from '../lib/config';
 import { StellarConfigResponseDto } from './dto/stellar-config.dto';
@@ -14,11 +16,15 @@ const DEFAULT_SOROBAN_RPC_URLS = {
   mainnet: 'https://soroban.stellar.org',
 } as const;
 
+const STELLAR_CONFIG_CACHE_KEY = 'stellar-config';
+
 @Injectable()
 export class ConfigService {
   constructor(
     @Inject(stellarConfig.KEY)
     private readonly stellarCfg: ConfigType<typeof stellarConfig>,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
   ) {}
 
   getStellarConfig(): StellarConfigResponseDto {
@@ -40,5 +46,13 @@ export class ConfigService {
         treasury: config.stellar.contracts.treasury ?? null,
       },
     };
+  }
+
+  /**
+   * Invalidates the cached Stellar configuration.
+   * Called after contract IDs are rotated to ensure clients see updated values.
+   */
+  async invalidateCache(): Promise<void> {
+    await this.cacheManager.del(STELLAR_CONFIG_CACHE_KEY);
   }
 }
